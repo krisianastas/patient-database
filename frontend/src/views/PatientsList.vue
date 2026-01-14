@@ -18,7 +18,7 @@
         />
       </div>
       <p class="text-xs uppercase tracking-[0.2em] text-slate-500">
-        Showing {{ filteredRows.length }} of {{ rows.length }}
+        Showing {{ paginatedRows.length }} of {{ filteredRows.length }}
       </p>
     </div>
 
@@ -43,7 +43,7 @@
       <AppButton to="/patients/new">Add the first patient</AppButton>
     </EmptyState>
 
-    <DataTable v-else :columns="columns" :rows="filteredRows">
+    <DataTable v-else :columns="columns" :rows="paginatedRows">
       <template #cell-name="{ row }">
         <div>
           <p class="font-semibold text-white">{{ row.name }}</p>
@@ -57,6 +57,35 @@
       </template>
     </DataTable>
 
+    <div v-if="totalPages > 1" class="flex flex-wrap items-center justify-between gap-4">
+      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">
+        Page {{ currentPage }} of {{ totalPages }}
+      </p>
+      <div class="flex items-center gap-2">
+        <AppButton variant="ghost" type="button" :disabled="currentPage === 1" @click="goToPage(1)">
+          First
+        </AppButton>
+        <AppButton variant="ghost" type="button" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+          Previous
+        </AppButton>
+        <AppButton
+          v-for="page in pageNumbers"
+          :key="page"
+          :variant="page === currentPage ? 'primary' : 'ghost'"
+          type="button"
+          @click="goToPage(page)"
+        >
+          {{ page }}
+        </AppButton>
+        <AppButton variant="ghost" type="button" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">
+          Next
+        </AppButton>
+        <AppButton variant="ghost" type="button" :disabled="currentPage === totalPages" @click="goToPage(totalPages)">
+          Last
+        </AppButton>
+      </div>
+    </div>
+
     <ModalConfirm
       :open="showConfirm"
       title="Delete patient"
@@ -68,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import AppButton from '../components/AppButton.vue'
 import AppCard from '../components/AppCard.vue'
@@ -83,6 +112,8 @@ const patientsStore = usePatientsStore()
 const searchQuery = ref('')
 const showConfirm = ref(false)
 const patientToDelete = ref<PatientRow | null>(null)
+const currentPage = ref(1)
+const pageSize = 10
 
 const loadPatients = async () => {
   await patientsStore.fetchPatients()
@@ -152,6 +183,26 @@ const filteredRows = computed(() => {
       .toLowerCase()
       .includes(query)
   })
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredRows.value.length / pageSize)))
+
+const paginatedRows = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredRows.value.slice(start, start + pageSize)
+})
+
+const pageNumbers = computed(() => Array.from({ length: totalPages.value }, (_, index) => index + 1))
+
+const goToPage = (page: number) => {
+  const safePage = Math.min(Math.max(1, page), totalPages.value)
+  currentPage.value = safePage
+}
+
+watch([filteredRows, totalPages], () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = 1
+  }
 })
 
 const patientsWithDoctor = computed(
