@@ -29,6 +29,18 @@
 3. Build for Django static hosting:
    - `npm run build`
 
+## Run Without Node (serve built SPA from Django)
+
+1. Build frontend once:
+   - `cd frontend`
+   - `npm install`
+   - `npm run build`
+2. Start Django only:
+   - `cd ..`
+   - `python manage.py runserver`
+
+The Vue build output is written to `static/spa`, and Django serves it at `/static/...`.
+
 ## Notes
 
 - The project uses SQLite (`db.sqlite3`) by default.

@@ -177,6 +177,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Security settings (configure strict values in production via env).
 SESSION_COOKIE_SECURE = _get_bool('DJANGO_SESSION_COOKIE_SECURE')
