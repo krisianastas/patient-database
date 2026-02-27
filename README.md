@@ -5,16 +5,19 @@
 1. Create and activate a virtual environment:
    - `python3 -m venv .venv`
    - `source .venv/bin/activate`
-2. Install dependencies:
+2. Create environment file:
+   - `cp .env.example .env`
+   - Update values as needed (especially `DJANGO_SECRET_KEY`).
+3. Install dependencies:
    - `python -m pip install -r requirements.txt`
-3. Apply database migrations:
+4. Apply database migrations:
    - `python manage.py makemigrations`
    - `python manage.py migrate`
-4. (Optional) Create an admin user:
+5. (Optional) Create an admin user:
    - `python manage.py createsuperuser`
-5. Start the development server:
+6. Start the development server:
    - `python manage.py runserver`
-6. Open `http://127.0.0.1:8000/` in your browser.
+7. Open `http://127.0.0.1:8000/` in your browser.
 
 ## Frontend (Vue SPA)
 

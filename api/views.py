@@ -1,7 +1,9 @@
 import json
+from functools import wraps
 
+from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from homepage.forms import PatientForm
@@ -30,7 +32,59 @@ def _parse_json_body(request):
         return None
 
 
-@csrf_exempt
+def _auth_payload(user):
+    if not user.is_authenticated:
+        return {'authenticated': False, 'user': None}
+    return {
+        'authenticated': True,
+        'user': {
+            'id': user.id,
+            'username': user.get_username(),
+        },
+    }
+
+
+def json_login_required(view_func):
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Authentication required.'}, status=401)
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped
+
+
+@ensure_csrf_cookie
+@require_http_methods(["GET"])
+def auth_session(request):
+    return JsonResponse(_auth_payload(request.user))
+
+
+@require_http_methods(["POST"])
+def auth_login(request):
+    payload = _parse_json_body(request)
+    if payload is None:
+        return JsonResponse({'error': 'Invalid JSON payload.'}, status=400)
+
+    username = payload.get('username')
+    password = payload.get('password')
+    user = authenticate(request, username=username, password=password)
+
+    if user is None:
+        return JsonResponse({'error': 'Invalid username or password.'}, status=401)
+
+    login(request, user)
+    return JsonResponse(_auth_payload(request.user))
+
+
+@json_login_required
+@require_http_methods(["POST"])
+def auth_logout(request):
+    logout(request)
+    return JsonResponse({'status': 'logged_out'})
+
+
+@json_login_required
 @require_http_methods(["GET", "POST"])
 def patients_collection(request):
     if request.method == "GET":
@@ -50,7 +104,7 @@ def patients_collection(request):
     return JsonResponse({'errors': form.errors}, status=400)
 
 
-@csrf_exempt
+@json_login_required
 @require_http_methods(["GET", "PUT", "DELETE"])
 def patient_detail(request, pk):
     try:

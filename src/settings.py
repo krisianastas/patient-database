@@ -10,27 +10,77 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
+
+def _load_dotenv(dotenv_path: Path) -> None:
+    if not dotenv_path.exists():
+        return
+
+    for raw_line in dotenv_path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+
+        key, value = line.split('=', 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+def _get_required_env(name: str, allow_empty: bool = False) -> str:
+    value = os.getenv(name)
+    if value is None:
+        raise ImproperlyConfigured(f'{name} must be set in environment.')
+    value = value.strip()
+    if not allow_empty and value == '':
+        raise ImproperlyConfigured(f'{name} must not be empty.')
+    return value
+
+
+def _get_bool(name: str) -> bool:
+    value = _get_required_env(name).lower()
+    if value in {'1', 'true', 'yes', 'on'}:
+        return True
+    if value in {'0', 'false', 'no', 'off'}:
+        return False
+    raise ImproperlyConfigured(f'{name} must be a boolean (true/false).')
+
+
+def _get_int(name: str) -> int:
+    value = _get_required_env(name)
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise ImproperlyConfigured(f'{name} must be an integer.') from exc
+
+
+def _get_list(name: str) -> list[str]:
+    value = _get_required_env(name, allow_empty=True)
+    if value == '':
+        return []
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+_load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-gg+if@cv*95tr=z8=(c4ti35w-2%j(er20jcgz!5y&58v2@avf'
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _get_bool('DJANGO_DEBUG')
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = _get_required_env('DJANGO_SECRET_KEY')
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-]
+ALLOWED_HOSTS = _get_list('DJANGO_ALLOWED_HOSTS')
+
+CSRF_TRUSTED_ORIGINS = _get_list('DJANGO_CSRF_TRUSTED_ORIGINS')
 
 
 # Application definition
@@ -82,8 +132,12 @@ WSGI_APPLICATION = 'src.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': _get_required_env('DJANGO_DB_ENGINE'),
+        'NAME': _get_required_env('DJANGO_DB_NAME'),
+        'USER': _get_required_env('DJANGO_DB_USER', allow_empty=True),
+        'PASSWORD': _get_required_env('DJANGO_DB_PASSWORD', allow_empty=True),
+        'HOST': _get_required_env('DJANGO_DB_HOST', allow_empty=True),
+        'PORT': _get_required_env('DJANGO_DB_PORT', allow_empty=True),
     }
 }
 
@@ -123,6 +177,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Security settings (configure strict values in production via env).
+SESSION_COOKIE_SECURE = _get_bool('DJANGO_SESSION_COOKIE_SECURE')
+CSRF_COOKIE_SECURE = _get_bool('DJANGO_CSRF_COOKIE_SECURE')
+SECURE_SSL_REDIRECT = _get_bool('DJANGO_SECURE_SSL_REDIRECT')
+SECURE_HSTS_SECONDS = _get_int('DJANGO_SECURE_HSTS_SECONDS')
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _get_bool('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS')
+SECURE_HSTS_PRELOAD = _get_bool('DJANGO_SECURE_HSTS_PRELOAD')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

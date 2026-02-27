@@ -26,13 +26,22 @@ function getCookie(name: string) {
 }
 
 async function request(path: string, options: RequestInit = {}) {
-  const response = await fetch(path, options)
+  const response = await fetch(path, {
+    credentials: 'same-origin',
+    ...options
+  })
   const data = await response.json().catch(() => null)
 
   if (!response.ok) {
-    const message = data && data.error ? data.error : 'Request failed.'
-    const error = new Error(message) as Error & { payload?: unknown }
+    const message =
+      response.status === 401
+        ? 'Session expired. Please log in.'
+        : data && data.error
+          ? data.error
+          : 'Request failed.'
+    const error = new Error(message) as Error & { payload?: unknown; status?: number }
     error.payload = data as unknown
+    error.status = response.status
     throw error
   }
 
