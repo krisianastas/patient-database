@@ -22,6 +22,18 @@
       </p>
     </div>
 
+    <AppCard>
+      <div class="space-y-3">
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Filter by services</p>
+        <ServiceCheckboxDropdown
+          v-model="selectedServiceIds"
+          :options="patientsStore.services"
+          placeholder="Filter patients by service"
+          empty-text="No services configured yet."
+        />
+      </div>
+    </AppCard>
+
     <div class="grid gap-4 md:grid-cols-3">
       <StatTile label="Total patients" :value="patientsStore.patients.length" subtitle="Active records" />
       <StatTile label="With doctor" :value="patientsWithDoctor" subtitle="Assigned today" />
@@ -105,18 +117,23 @@ import DataTable from '../components/DataTable.vue'
 import EmptyState from '../components/EmptyState.vue'
 import ModalConfirm from '../components/ModalConfirm.vue'
 import SectionHeader from '../components/SectionHeader.vue'
+import ServiceCheckboxDropdown from '../components/ServiceCheckboxDropdown.vue'
 import StatTile from '../components/StatTile.vue'
 import { usePatientsStore } from '../stores/patients'
 
 const patientsStore = usePatientsStore()
 const searchQuery = ref('')
+const selectedServiceIds = ref<number[]>([])
 const showConfirm = ref(false)
 const patientToDelete = ref<PatientRow | null>(null)
 const currentPage = ref(1)
 const pageSize = 10
 
 const loadPatients = async () => {
-  await patientsStore.fetchPatients()
+  await Promise.all([
+    patientsStore.fetchServices(),
+    patientsStore.fetchPatients({ service_ids: selectedServiceIds.value })
+  ])
 }
 
 const confirmDelete = (patient: PatientRow) => {
@@ -204,6 +221,11 @@ watch([filteredRows, totalPages], () => {
     currentPage.value = 1
   }
 })
+
+watch(selectedServiceIds, async () => {
+  currentPage.value = 1
+  await patientsStore.fetchPatients({ service_ids: selectedServiceIds.value })
+}, { deep: true })
 
 const patientsWithDoctor = computed(
   () => patientsStore.patients.filter((patient) => patient.mjeku && patient.mjeku.trim()).length

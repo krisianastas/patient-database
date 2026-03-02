@@ -1,6 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+export type Service = {
+  id: number
+  name: string
+}
+
+export type PatientUser = {
+  id: number
+  username: string
+}
+
 export type Patient = {
   id: number
   emri: string | null
@@ -8,8 +18,19 @@ export type Patient = {
   email: string | null
   mjeku: string | null
   cmimi: string | null
-  sherbimet: string | null
+  services: Service[]
+  created_by: PatientUser | null
+  updated_by: PatientUser | null
   data: string | null
+}
+
+type PatientPayload = {
+  emri: string
+  nr_cel: string
+  email: string
+  mjeku: string
+  cmimi: string
+  service_ids: number[]
 }
 
 function getCookie(name: string) {
@@ -51,6 +72,7 @@ async function request(path: string, options: RequestInit = {}) {
 export const usePatientsStore = defineStore('patients', () => {
   const patients = ref<Patient[]>([])
   const currentPatient = ref<Patient | null>(null)
+  const services = ref<Service[]>([])
   const loading = ref(false)
   const error = ref('')
 
@@ -66,12 +88,30 @@ export const usePatientsStore = defineStore('patients', () => {
     error.value = String(err)
   }
 
-  const fetchPatients = async () => {
+  const fetchServices = async () => {
+    setError('')
+
+    try {
+      const data = await request('/api/services/')
+      services.value = data.results || []
+      return services.value
+    } catch (err) {
+      setError(err)
+      return []
+    }
+  }
+
+  const fetchPatients = async (filters?: { service_ids?: number[] }) => {
     loading.value = true
     setError('')
 
     try {
-      const data = await request('/api/patients/')
+      const params = new URLSearchParams()
+      if (filters?.service_ids?.length) {
+        params.set('service_ids', filters.service_ids.join(','))
+      }
+      const query = params.toString()
+      const data = await request(`/api/patients/${query ? `?${query}` : ''}`)
       patients.value = data.results || []
     } catch (err) {
       setError(err)
@@ -95,7 +135,7 @@ export const usePatientsStore = defineStore('patients', () => {
     }
   }
 
-  const createPatient = async (payload: Partial<Patient>) => {
+  const createPatient = async (payload: PatientPayload) => {
     setError('')
 
     try {
@@ -115,7 +155,7 @@ export const usePatientsStore = defineStore('patients', () => {
     }
   }
 
-  const updatePatient = async (id: number | string, payload: Partial<Patient>) => {
+  const updatePatient = async (id: number | string, payload: PatientPayload) => {
     setError('')
 
     try {
@@ -162,8 +202,10 @@ export const usePatientsStore = defineStore('patients', () => {
   return {
     patients,
     currentPatient,
+    services,
     loading,
     error,
+    fetchServices,
     fetchPatients,
     fetchPatient,
     createPatient,

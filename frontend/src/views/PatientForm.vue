@@ -62,14 +62,13 @@
             placeholder="100 EUR"
           />
         </FormField>
-        <FormField label="Services" for-id="sherbimet" class="md:col-span-2" :error="errors.sherbimet">
-          <textarea
-            id="sherbimet"
-            v-model="form.sherbimet"
-            rows="4"
-            class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
-            placeholder="Notes on treatments or services"
-          ></textarea>
+        <FormField label="Services" for-id="service_ids" class="md:col-span-2" :error="errors.service_ids">
+          <ServiceCheckboxDropdown
+            v-model="form.service_ids"
+            :options="patientsStore.services"
+            placeholder="Select patient services"
+            empty-text="No services configured yet. Add them in Django admin."
+          />
         </FormField>
 
         <div class="flex flex-wrap gap-3 md:col-span-2">
@@ -91,6 +90,7 @@ import AppButton from '../components/AppButton.vue'
 import AppCard from '../components/AppCard.vue'
 import FormField from '../components/FormField.vue'
 import SectionHeader from '../components/SectionHeader.vue'
+import ServiceCheckboxDropdown from '../components/ServiceCheckboxDropdown.vue'
 import { usePatientsStore } from '../stores/patients'
 
 const route = useRoute()
@@ -112,21 +112,21 @@ const form = reactive({
   email: '',
   mjeku: '',
   cmimi: '',
-  sherbimet: ''
+  service_ids: [] as number[]
 })
 
 const isEdit = computed(() => Boolean(routeId.value))
 
 const loadPatient = async () => {
-  if (!isEdit.value) {
-    return
-  }
-
-  loading.value = true
-
   try {
+    await patientsStore.fetchServices()
+
+    if (!isEdit.value) {
+      return
+    }
+
+    loading.value = true
     if (!routeId.value) {
-      loading.value = false
       return
     }
     const patient = await patientsStore.fetchPatient(routeId.value)
@@ -138,7 +138,7 @@ const loadPatient = async () => {
     form.email = patient.email || ''
     form.mjeku = patient.mjeku || ''
     form.cmimi = patient.cmimi || ''
-    form.sherbimet = patient.sherbimet || ''
+    form.service_ids = patient.services.map((service) => service.id)
   } finally {
     loading.value = false
   }
@@ -172,7 +172,7 @@ const handleSubmit = async () => {
       if (!routeId.value) {
         return
       }
-      const updated = await patientsStore.updatePatient(routeId.value, { ...form })
+      const updated = await patientsStore.updatePatient(routeId.value, { ...form, service_ids: [...form.service_ids] })
       if (!updated) {
         return
       }
@@ -180,7 +180,7 @@ const handleSubmit = async () => {
       return
     }
 
-    const created = await patientsStore.createPatient({ ...form })
+    const created = await patientsStore.createPatient({ ...form, service_ids: [...form.service_ids] })
     if (!created) {
       return
     }

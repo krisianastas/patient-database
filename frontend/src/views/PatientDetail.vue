@@ -38,9 +38,25 @@
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Created</p>
           <p class="mt-2 text-white">{{ formattedDate || 'Unknown' }}</p>
         </div>
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Created by</p>
+          <p class="mt-2 text-white">{{ patient.created_by?.username || 'Unknown' }}</p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Last updated by</p>
+          <p class="mt-2 text-white">{{ patient.updated_by?.username || 'Unknown' }}</p>
+        </div>
         <div class="md:col-span-2">
           <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Services</p>
-          <p class="mt-2 text-white">{{ patient.sherbimet || 'No services listed.' }}</p>
+          <div class="mt-3">
+            <ServiceCheckboxDropdown
+              :model-value="selectedServiceIds"
+              :options="patient.services"
+              placeholder="No services listed."
+              empty-text="No services listed."
+              read-only
+            />
+          </div>
         </div>
       </div>
     </AppCard>
@@ -57,6 +73,7 @@ import { useRoute } from 'vue-router'
 import AppButton from '../components/AppButton.vue'
 import AppCard from '../components/AppCard.vue'
 import SectionHeader from '../components/SectionHeader.vue'
+import ServiceCheckboxDropdown from '../components/ServiceCheckboxDropdown.vue'
 import { usePatientsStore } from '../stores/patients'
 import type { Patient } from '../stores/patients'
 
@@ -75,6 +92,8 @@ const formattedDate = computed(() => {
   }
   return new Date(patient.value.data).toLocaleString()
 })
+
+const selectedServiceIds = computed(() => patient.value?.services.map((service) => service.id) || [])
 
 const loadPatient = async () => {
   if (!routeId.value) {
