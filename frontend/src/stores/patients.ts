@@ -11,14 +11,23 @@ export type PatientUser = {
   username: string
 }
 
+export type ServiceEvent = {
+  id: number
+  service: Service
+  service_date: string
+  price: string | null
+  created_at: string | null
+  created_by: PatientUser | null
+}
+
 export type Patient = {
   id: number
   emri: string | null
   nr_cel: string | null
   email: string | null
   mjeku: string | null
-  cmimi: string | null
-  services: Service[]
+  service_events: ServiceEvent[]
+  service_summary: Service[]
   created_by: PatientUser | null
   updated_by: PatientUser | null
   data: string | null
@@ -29,8 +38,12 @@ type PatientPayload = {
   nr_cel: string
   email: string
   mjeku: string
-  cmimi: string
-  service_ids: number[]
+}
+
+type ServiceEventPayload = {
+  service_id: number
+  service_date: string
+  price: string
 }
 
 function getCookie(name: string) {
@@ -199,6 +212,54 @@ export const usePatientsStore = defineStore('patients', () => {
     }
   }
 
+  const addServiceEvent = async (patientId: number | string, payload: ServiceEventPayload) => {
+    setError('')
+
+    try {
+      const created = await request(`/api/patients/${patientId}/service-events/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const refreshed = await request(`/api/patients/${patientId}/`)
+      patients.value = patients.value.map((item) => (String(item.id) === String(patientId) ? refreshed : item))
+      if (currentPatient.value && String(currentPatient.value.id) === String(patientId)) {
+        currentPatient.value = refreshed
+      }
+      return created
+    } catch (err) {
+      setError(err)
+      return null
+    }
+  }
+
+  const deleteServiceEvent = async (patientId: number | string, eventId: number | string) => {
+    setError('')
+
+    try {
+      await request(`/api/patients/${patientId}/service-events/${eventId}/`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+
+      const refreshed = await request(`/api/patients/${patientId}/`)
+      patients.value = patients.value.map((item) => (String(item.id) === String(patientId) ? refreshed : item))
+      if (currentPatient.value && String(currentPatient.value.id) === String(patientId)) {
+        currentPatient.value = refreshed
+      }
+      return true
+    } catch (err) {
+      setError(err)
+      return false
+    }
+  }
+
   return {
     patients,
     currentPatient,
@@ -210,6 +271,8 @@ export const usePatientsStore = defineStore('patients', () => {
     fetchPatient,
     createPatient,
     updatePatient,
-    deletePatient
+    deletePatient,
+    addServiceEvent,
+    deleteServiceEvent
   }
 })

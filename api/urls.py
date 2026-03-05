@@ -9,4 +9,14 @@ urlpatterns = [
     path('services/', views.services_collection, name='api-services'),
     path('patients/', views.patients_collection, name='api-patients'),
     path('patients/<int:pk>/', views.patient_detail, name='api-patient-detail'),
+    path(
+        'patients/<int:pk>/service-events/',
+        views.patient_service_events_collection,
+        name='api-patient-service-events',
+    ),
+    path(
+        'patients/<int:pk>/service-events/<int:event_id>/',
+        views.patient_service_event_detail,
+        name='api-patient-service-event-detail',
+    ),
 ]

@@ -3,11 +3,14 @@ from functools import wraps
 
 from django.contrib.auth import authenticate, login, logout
 from django.core.validators import validate_email
+from django.db.models import Prefetch
 from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
-from homepage.models import Patient, Service
+from homepage.models import Patient, PatientServiceEvent, Service
 
 
 def _serialize_user(user):
@@ -26,15 +29,32 @@ def _serialize_service(service):
     }
 
 
+def _serialize_service_event(event):
+    return {
+        'id': event.id,
+        'service': _serialize_service(event.service),
+        'service_date': event.service_date.isoformat() if event.service_date else None,
+        'price': event.price,
+        'created_at': event.created_at.isoformat() if event.created_at else None,
+        'created_by': _serialize_user(event.created_by),
+    }
+
+
 def _serialize_patient(patient):
+    events = list(patient.service_events.all())
+    summary_by_id = {}
+    for event in events:
+        if event.service_id not in summary_by_id:
+            summary_by_id[event.service_id] = _serialize_service(event.service)
+
     return {
         'id': patient.id,
         'emri': patient.emri,
         'nr_cel': patient.nr_cel,
         'email': patient.email,
         'mjeku': patient.mjeku,
-        'cmimi': patient.cmimi,
-        'services': [_serialize_service(service) for service in patient.services.all()],
+        'service_events': [_serialize_service_event(event) for event in events],
+        'service_summary': list(summary_by_id.values()),
         'created_by': _serialize_user(patient.created_by),
         'updated_by': _serialize_user(patient.updated_by),
         'data': patient.data.isoformat() if patient.data else None,
@@ -76,7 +96,6 @@ def _validate_patient_payload(payload):
     nr_cel = _clean_optional_str(payload.get('nr_cel'), max_length=50, field_name='nr_cel', errors=errors)
     email = _clean_optional_str(payload.get('email'), max_length=191, field_name='email', errors=errors)
     mjeku = _clean_optional_str(payload.get('mjeku'), max_length=191, field_name='mjeku', errors=errors)
-    cmimi = _clean_optional_str(payload.get('cmimi'), max_length=50, field_name='cmimi', errors=errors)
 
     if email:
         try:
@@ -84,28 +103,11 @@ def _validate_patient_payload(payload):
         except Exception:
             errors['email'] = 'Enter a valid email address.'
 
-    raw_service_ids = payload.get('service_ids', [])
-    if raw_service_ids is None:
-        raw_service_ids = []
-    if not isinstance(raw_service_ids, list):
-        errors['service_ids'] = 'Must be a list of integers.'
-        raw_service_ids = []
+    if 'cmimi' in payload:
+        errors['cmimi'] = 'Price belongs to services.'
 
-    service_ids = []
-    if 'service_ids' not in errors:
-        for item in raw_service_ids:
-            if not isinstance(item, int):
-                errors['service_ids'] = 'Must be a list of integers.'
-                service_ids = []
-                break
-            service_ids.append(item)
-
-    services = []
-    if 'service_ids' not in errors:
-        unique_service_ids = list(dict.fromkeys(service_ids))
-        services = list(Service.objects.filter(id__in=unique_service_ids).order_by('name'))
-        if len(services) != len(unique_service_ids):
-            errors['service_ids'] = 'One or more selected services do not exist.'
+    if 'service_ids' in payload:
+        errors['service_ids'] = 'Use service event endpoints.'
 
     return {
         'cleaned_data': {
@@ -113,8 +115,6 @@ def _validate_patient_payload(payload):
             'nr_cel': nr_cel,
             'email': email,
             'mjeku': mjeku,
-            'cmimi': cmimi,
-            'services': services,
         },
         'errors': errors,
     }
@@ -125,13 +125,48 @@ def _apply_patient_fields(patient, cleaned_data, user, *, is_create=False):
     patient.nr_cel = cleaned_data['nr_cel']
     patient.email = cleaned_data['email']
     patient.mjeku = cleaned_data['mjeku']
-    patient.cmimi = cleaned_data['cmimi']
     if is_create and not patient.created_by:
         patient.created_by = user
     patient.updated_by = user
     patient.save()
-    patient.services.set(cleaned_data['services'])
     return patient
+
+
+def _validate_service_event_payload(payload):
+    errors = {}
+    service = None
+    service_date = None
+    price = None
+
+    raw_service_id = payload.get('service_id')
+    if not isinstance(raw_service_id, int):
+        errors['service_id'] = 'Must be an integer.'
+    else:
+        try:
+            service = Service.objects.get(pk=raw_service_id)
+        except Service.DoesNotExist:
+            errors['service_id'] = 'Service does not exist.'
+
+    raw_service_date = payload.get('service_date')
+    if not isinstance(raw_service_date, str):
+        errors['service_date'] = 'Must be a valid date in YYYY-MM-DD format.'
+    else:
+        service_date = parse_date(raw_service_date.strip())
+        if not service_date:
+            errors['service_date'] = 'Must be a valid date in YYYY-MM-DD format.'
+        elif service_date > timezone.localdate():
+            errors['service_date'] = 'Service date cannot be in the future.'
+
+    price = _clean_optional_str(payload.get('price'), max_length=50, field_name='price', errors=errors)
+
+    return {
+        'cleaned_data': {
+            'service': service,
+            'service_date': service_date,
+            'price': price,
+        },
+        'errors': errors,
+    }
 
 
 def _parse_service_filter(raw_value):
@@ -148,6 +183,15 @@ def _parse_service_filter(raw_value):
         except ValueError as exc:
             raise ValueError('service_ids must be a comma-separated list of integers.') from exc
     return list(dict.fromkeys(values))
+
+
+def _patients_queryset():
+    return Patient.objects.select_related('created_by', 'updated_by').prefetch_related(
+        Prefetch(
+            'service_events',
+            queryset=PatientServiceEvent.objects.select_related('service', 'created_by').order_by('-service_date', '-id'),
+        )
+    )
 
 
 def _auth_payload(user):
@@ -213,7 +257,7 @@ def services_collection(request):
 @require_http_methods(["GET", "POST"])
 def patients_collection(request):
     if request.method == "GET":
-        patients = Patient.objects.select_related('created_by', 'updated_by').prefetch_related('services')
+        patients = _patients_queryset()
 
         try:
             service_ids = _parse_service_filter(request.GET.get('service_ids', ''))
@@ -221,7 +265,7 @@ def patients_collection(request):
             return JsonResponse({'error': str(exc)}, status=400)
 
         if service_ids:
-            patients = patients.filter(services__id__in=service_ids).distinct()
+            patients = patients.filter(service_events__service_id__in=service_ids).distinct()
 
         data = [_serialize_patient(patient) for patient in patients.order_by('-data')]
         return JsonResponse({'results': data})
@@ -240,7 +284,7 @@ def patients_collection(request):
         request.user,
         is_create=True,
     )
-    patient = Patient.objects.select_related('created_by', 'updated_by').prefetch_related('services').get(pk=patient.pk)
+    patient = _patients_queryset().get(pk=patient.pk)
     return JsonResponse(_serialize_patient(patient), status=201)
 
 
@@ -248,7 +292,7 @@ def patients_collection(request):
 @require_http_methods(["GET", "PUT", "DELETE"])
 def patient_detail(request, pk):
     try:
-        patient = Patient.objects.select_related('created_by', 'updated_by').prefetch_related('services').get(pk=pk)
+        patient = _patients_queryset().get(pk=pk)
     except Patient.DoesNotExist:
         return JsonResponse({'error': 'Patient not found.'}, status=404)
 
@@ -268,5 +312,44 @@ def patient_detail(request, pk):
         return JsonResponse({'errors': validation['errors']}, status=400)
 
     patient = _apply_patient_fields(patient, validation['cleaned_data'], request.user)
-    patient = Patient.objects.select_related('created_by', 'updated_by').prefetch_related('services').get(pk=patient.pk)
+    patient = _patients_queryset().get(pk=patient.pk)
     return JsonResponse(_serialize_patient(patient))
+
+
+@json_login_required
+@require_http_methods(["POST"])
+def patient_service_events_collection(request, pk):
+    try:
+        patient = Patient.objects.get(pk=pk)
+    except Patient.DoesNotExist:
+        return JsonResponse({'error': 'Patient not found.'}, status=404)
+
+    payload = _parse_json_body(request)
+    if payload is None:
+        return JsonResponse({'error': 'Invalid JSON payload.'}, status=400)
+
+    validation = _validate_service_event_payload(payload)
+    if validation['errors']:
+        return JsonResponse({'errors': validation['errors']}, status=400)
+
+    event = PatientServiceEvent.objects.create(
+        patient=patient,
+        service=validation['cleaned_data']['service'],
+        service_date=validation['cleaned_data']['service_date'],
+        price=validation['cleaned_data']['price'],
+        created_by=request.user,
+    )
+    event = PatientServiceEvent.objects.select_related('service', 'created_by').get(pk=event.pk)
+    return JsonResponse(_serialize_service_event(event), status=201)
+
+
+@json_login_required
+@require_http_methods(["DELETE"])
+def patient_service_event_detail(request, pk, event_id):
+    try:
+        event = PatientServiceEvent.objects.get(pk=event_id, patient_id=pk)
+    except PatientServiceEvent.DoesNotExist:
+        return JsonResponse({'error': 'Service event not found.'}, status=404)
+
+    event.delete()
+    return JsonResponse({'status': 'deleted'})
