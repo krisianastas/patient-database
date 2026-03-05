@@ -12,6 +12,8 @@
     --surface-hover: rgba(255, 255, 255, 0.1);
     --surface-elevated: rgba(12, 16, 31, 0.82);
     --surface-soft: rgba(15, 23, 42, 0.6);
+    --card-surface: linear-gradient(165deg, rgba(14, 20, 36, 0.88) 0%, rgba(17, 24, 39, 0.76) 100%);
+    --card-surface-hover: linear-gradient(165deg, rgba(20, 28, 46, 0.92) 0%, rgba(20, 29, 49, 0.82) 100%);
     --border: rgba(255, 255, 255, 0.12);
     --border-strong: rgba(255, 255, 255, 0.22);
     --primary: #6366f1;
@@ -19,6 +21,10 @@
     --primary-ring: rgba(99, 102, 241, 0.4);
     --danger: #f43f5e;
     --danger-strong: #e11d48;
+    --interactive-ghost-hover-bg: rgba(255, 255, 255, 0.09);
+    --interactive-ghost-hover-border: rgba(255, 255, 255, 0.32);
+    --interactive-ghost-hover-text: #f8fafc;
+    --interactive-surface-hover-bg: rgba(255, 255, 255, 0.14);
     --overlay: rgba(2, 6, 23, 0.8);
     --shell-glow-a: rgba(99, 102, 241, 0.3);
     --shell-glow-b: rgba(217, 70, 239, 0.2);
@@ -34,6 +40,8 @@
     --surface-hover: rgba(255, 255, 255, 0.95);
     --surface-elevated: rgba(255, 255, 255, 0.9);
     --surface-soft: rgba(248, 251, 255, 0.92);
+    --card-surface: linear-gradient(160deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 249, 255, 0.98) 100%);
+    --card-surface-hover: linear-gradient(160deg, rgba(255, 255, 255, 0.99) 0%, rgba(237, 245, 255, 1) 100%);
     --border: rgba(148, 163, 184, 0.45);
     --border-strong: rgba(100, 116, 139, 0.65);
     --primary: #4f46e5;
@@ -41,6 +49,10 @@
     --primary-ring: rgba(79, 70, 229, 0.32);
     --danger: #e11d48;
     --danger-strong: #be123c;
+    --interactive-ghost-hover-bg: rgba(79, 70, 229, 0.1);
+    --interactive-ghost-hover-border: rgba(79, 70, 229, 0.35);
+    --interactive-ghost-hover-text: #1e1b4b;
+    --interactive-surface-hover-bg: rgba(79, 70, 229, 0.08);
     --overlay: rgba(15, 23, 42, 0.38);
     --shell-glow-a: rgba(37, 99, 235, 0.14);
     --shell-glow-b: rgba(251, 146, 60, 0.14);
@@ -135,12 +147,30 @@
     background-color: var(--surface-soft);
   }
 
+  .bg-theme-card {
+    background: var(--card-surface);
+  }
+
+  .hover-bg-theme-card:hover {
+    background: var(--card-surface-hover);
+  }
+
   .border-theme {
     border-color: var(--border);
   }
 
   .border-theme-strong {
     border-color: var(--border-strong);
+  }
+
+  .hover-interactive-ghost:hover {
+    background-color: var(--interactive-ghost-hover-bg);
+    border-color: var(--interactive-ghost-hover-border);
+    color: var(--interactive-ghost-hover-text);
+  }
+
+  .hover-interactive-surface:hover {
+    background-color: var(--interactive-surface-hover-bg);
   }
 }
 
