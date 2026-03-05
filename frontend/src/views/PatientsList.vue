@@ -69,11 +69,32 @@
       </template>
     </DataTable>
 
-    <div v-if="totalPages > 1" class="flex flex-wrap items-center justify-between gap-4">
-      <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">
+    <div v-if="totalPages > 1" class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
+      <p class="text-center text-xs uppercase tracking-[0.2em] text-theme-subtle md:text-left">
         Page {{ currentPage }} of {{ totalPages }}
       </p>
-      <div class="flex items-center gap-2">
+      <div class="grid w-full grid-cols-3 items-center gap-2 md:hidden">
+        <AppButton
+          variant="ghost"
+          type="button"
+          :disabled="currentPage === 1"
+          @click="goToPage(currentPage - 1)"
+        >
+          Previous
+        </AppButton>
+        <p class="text-center text-sm font-medium text-theme">
+          {{ currentPage }} / {{ totalPages }}
+        </p>
+        <AppButton
+          variant="ghost"
+          type="button"
+          :disabled="currentPage === totalPages"
+          @click="goToPage(currentPage + 1)"
+        >
+          Next
+        </AppButton>
+      </div>
+      <div class="hidden items-center gap-2 md:flex">
         <AppButton variant="ghost" type="button" :disabled="currentPage === 1" @click="goToPage(1)">
           First
         </AppButton>
