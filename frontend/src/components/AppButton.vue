@@ -4,7 +4,7 @@
     :to="to"
     :type="type"
     :disabled="disabled"
-    class="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-ring)]"
+    class="cursor-pointer inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-ring)]"
     :class="[variantClasses, disabledClasses]"
   >
     <slot />
@@ -39,15 +39,15 @@ const componentTag = computed(() => (props.to ? RouterLink : 'button'))
 const variantClasses = computed(() => {
   switch (props.variant) {
     case 'ghost':
-      return 'border border-theme text-theme hover:border-theme-strong'
+      return 'border border-theme bg-transparent text-theme hover-interactive-ghost'
     case 'danger':
-      return 'bg-[var(--danger)] text-white hover:bg-[var(--danger-strong)]'
+      return 'bg-[var(--danger)] text-white hover:bg-[var(--danger-strong)] hover:text-white'
     default:
-      return 'bg-[var(--primary)] text-white hover:bg-[var(--primary-strong)]'
+      return 'bg-[var(--primary)] text-white hover:bg-[var(--primary-strong)] hover:text-white'
   }
 })
 
 const disabledClasses = computed(() =>
-  props.disabled ? 'cursor-not-allowed opacity-60' : ''
+  props.disabled ? 'cursor-not-allowed opacity-60 pointer-events-none' : ''
 )
 </script>

@@ -1,7 +1,7 @@
 <template>
   <button
     type="button"
-    class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-theme bg-theme-elevated text-theme transition hover:border-theme-strong"
+    class="cursor-pointer inline-flex h-10 w-10 items-center justify-center rounded-full border border-theme bg-theme-elevated text-theme transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-ring)] hover-interactive-ghost"
     :aria-label="label"
     @click="themeStore.toggleTheme"
   >

@@ -2,7 +2,7 @@
   <div ref="root" class="relative">
     <button
       type="button"
-      class="flex w-full items-center justify-between gap-3 rounded-2xl border border-theme bg-theme-elevated px-4 py-3 text-left text-sm text-theme transition hover:border-theme-strong focus:border-theme-strong focus:outline-none focus:ring-2 focus:ring-[var(--primary-ring)]"
+      class="flex w-full items-center justify-between gap-3 rounded-2xl border border-theme bg-theme-elevated px-4 py-3 text-left text-sm text-theme transition hover-interactive-ghost focus:border-theme-strong focus:outline-none focus:ring-2 focus:ring-[var(--primary-ring)]"
       @click="toggleOpen"
     >
       <span class="truncate">{{ buttonLabel }}</span>
@@ -24,7 +24,8 @@
         <label
           v-for="option in filteredOptions"
           :key="option.id"
-          class="flex items-center gap-3 rounded-xl border border-theme bg-theme-soft px-3 py-2 text-sm text-theme"
+          class="flex items-center gap-3 rounded-xl border border-theme bg-theme-soft px-3 py-2 text-sm text-theme transition"
+          :class="readOnly ? 'opacity-70' : 'cursor-pointer hover-interactive-surface hover:border-[var(--interactive-ghost-hover-border)]'"
         >
           <input
             :checked="modelValue.includes(option.id)"
