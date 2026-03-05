@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
-      <p v-if="eyebrow" class="text-xs uppercase tracking-[0.3em] text-slate-500">{{ eyebrow }}</p>
-      <h2 class="text-2xl font-semibold text-white">{{ title }}</h2>
-      <p v-if="subtitle" class="mt-1 text-sm text-slate-400">{{ subtitle }}</p>
+      <p v-if="eyebrow" class="text-xs uppercase tracking-[0.3em] text-theme-subtle">{{ eyebrow }}</p>
+      <h2 class="text-2xl font-semibold text-theme">{{ title }}</h2>
+      <p v-if="subtitle" class="mt-1 text-sm text-theme-muted">{{ subtitle }}</p>
     </div>
     <div class="flex items-center gap-2">
       <slot />

@@ -1,7 +1,7 @@
 <template>
-  <div class="overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
+  <div class="overflow-x-auto rounded-2xl border border-theme bg-theme-surface">
     <table class="min-w-[720px] w-full text-left text-sm">
-      <thead class="bg-white/5 text-xs uppercase tracking-[0.2em] text-slate-400">
+      <thead class="bg-theme-surface text-xs uppercase tracking-[0.2em] text-theme-muted">
         <tr>
           <th v-for="column in columns" :key="String(column.key)" class="px-6 py-4">
             {{ column.label }}
@@ -12,7 +12,7 @@
         <tr
           v-for="(row, rowIndex) in rows"
           :key="getRowKey(row, rowIndex)"
-          class="border-t border-white/5"
+          class="border-t border-theme"
         >
           <td v-for="column in columns" :key="String(column.key)" class="px-6 py-4">
             <slot :name="`cell-${String(column.key)}`" :row="row">

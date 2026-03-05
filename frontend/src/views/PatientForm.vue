@@ -9,10 +9,10 @@
     </SectionHeader>
 
     <AppCard v-if="loading">
-      <p class="text-sm text-slate-400">Loading patient record...</p>
+      <p class="text-sm text-theme-muted">Loading patient record...</p>
     </AppCard>
     <AppCard v-else-if="patientsStore.error">
-      <p class="text-sm text-rose-300">{{ patientsStore.error }}</p>
+      <p class="text-sm text-theme-error">{{ patientsStore.error }}</p>
     </AppCard>
 
     <AppCard v-else>
@@ -22,7 +22,7 @@
             id="emri"
             v-model="form.emri"
             type="text"
-            class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+            class="ui-input"
             placeholder="Patient name"
           />
         </FormField>
@@ -31,7 +31,7 @@
             id="nr_cel"
             v-model="form.nr_cel"
             type="text"
-            class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+            class="ui-input"
             placeholder="+355..."
           />
         </FormField>
@@ -40,7 +40,7 @@
             id="email"
             v-model="form.email"
             type="email"
-            class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+            class="ui-input"
             placeholder="name@email.com"
           />
         </FormField>
@@ -49,7 +49,7 @@
             id="mjeku"
             v-model="form.mjeku"
             type="text"
-            class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+            class="ui-input"
             placeholder="Assigned doctor"
           />
         </FormField>

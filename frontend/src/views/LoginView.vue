@@ -14,7 +14,7 @@
             v-model="form.username"
             type="text"
             autocomplete="username"
-            class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+            class="ui-input"
             placeholder="Enter your username"
           />
         </FormField>
@@ -25,13 +25,13 @@
             v-model="form.password"
             type="password"
             autocomplete="current-password"
-            class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+            class="ui-input"
             placeholder="Enter your password"
           />
         </FormField>
 
-        <p v-if="localError" class="text-sm text-rose-300">{{ localError }}</p>
-        <p v-else-if="authStore.error" class="text-sm text-rose-300">{{ authStore.error }}</p>
+        <p v-if="localError" class="text-sm text-theme-error">{{ localError }}</p>
+        <p v-else-if="authStore.error" class="text-sm text-theme-error">{{ authStore.error }}</p>
 
         <AppButton type="submit" :disabled="authStore.loading" class="w-full">
           {{ authStore.loading ? 'Signing in...' : 'Sign in' }}

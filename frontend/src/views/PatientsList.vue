@@ -14,17 +14,17 @@
           v-model="searchQuery"
           type="text"
           placeholder="Search by name, doctor, email, or phone"
-          class="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+          class="ui-input"
         />
       </div>
-      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">
+      <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">
         Showing {{ paginatedRows.length }} of {{ filteredRows.length }}
       </p>
     </div>
 
     <AppCard>
       <div class="space-y-3">
-        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Filter by services</p>
+        <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">Filter by services</p>
         <ServiceCheckboxDropdown
           v-model="selectedServiceIds"
           :options="patientsStore.services"
@@ -41,10 +41,10 @@
     </div>
 
     <AppCard v-if="patientsStore.loading">
-      <p class="text-sm text-slate-400">Loading patients...</p>
+      <p class="text-sm text-theme-muted">Loading patients...</p>
     </AppCard>
     <AppCard v-else-if="patientsStore.error">
-      <p class="text-sm text-rose-300">{{ patientsStore.error }}</p>
+      <p class="text-sm text-theme-error">{{ patientsStore.error }}</p>
     </AppCard>
 
     <EmptyState
@@ -58,7 +58,7 @@
     <DataTable v-else :columns="columns" :rows="paginatedRows">
       <template #cell-name="{ row }">
         <div>
-          <p class="font-semibold text-white">{{ row.name }}</p>
+          <p class="font-semibold text-theme">{{ row.name }}</p>
         </div>
       </template>
       <template #cell-actions="{ row }">
@@ -70,7 +70,7 @@
     </DataTable>
 
     <div v-if="totalPages > 1" class="flex flex-wrap items-center justify-between gap-4">
-      <p class="text-xs uppercase tracking-[0.2em] text-slate-500">
+      <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">
         Page {{ currentPage }} of {{ totalPages }}
       </p>
       <div class="flex items-center gap-2">

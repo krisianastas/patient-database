@@ -2,21 +2,21 @@
   <div ref="root" class="relative">
     <button
       type="button"
-      class="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-left text-sm text-white transition hover:border-white/20 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+      class="flex w-full items-center justify-between gap-3 rounded-2xl border border-theme bg-theme-elevated px-4 py-3 text-left text-sm text-theme transition hover:border-theme-strong focus:border-theme-strong focus:outline-none focus:ring-2 focus:ring-[var(--primary-ring)]"
       @click="toggleOpen"
     >
       <span class="truncate">{{ buttonLabel }}</span>
-      <span class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ isOpen ? 'Close' : 'Open' }}</span>
+      <span class="text-xs uppercase tracking-[0.2em] text-theme-muted">{{ isOpen ? 'Close' : 'Open' }}</span>
     </button>
 
     <div
       v-if="isOpen"
-      class="absolute z-20 mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 p-3 shadow-2xl shadow-slate-950/70"
+      class="absolute z-20 mt-2 w-full rounded-2xl border border-theme bg-theme-elevated p-3 shadow-2xl"
     >
       <input
         v-model="searchQuery"
         type="text"
-        class="mb-3 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+        class="mb-3 w-full rounded-xl border border-theme bg-theme-soft px-3 py-2 text-sm text-theme placeholder:text-theme-muted focus:border-theme-strong focus:outline-none focus:ring-2 focus:ring-[var(--primary-ring)]"
         placeholder="Search services"
       />
 
@@ -24,19 +24,19 @@
         <label
           v-for="option in filteredOptions"
           :key="option.id"
-          class="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-white"
+          class="flex items-center gap-3 rounded-xl border border-theme bg-theme-soft px-3 py-2 text-sm text-theme"
         >
           <input
             :checked="modelValue.includes(option.id)"
             type="checkbox"
             :disabled="readOnly"
-            class="h-4 w-4 rounded border-white/20 bg-slate-900 text-indigo-400 focus:ring-indigo-400/40"
+            class="h-4 w-4 rounded border-theme bg-theme-elevated text-[var(--primary)] focus:ring-[var(--primary-ring)]"
             @change="toggleSelection(option.id)"
           />
           <span>{{ option.name }}</span>
         </label>
       </div>
-      <p v-else class="px-1 py-2 text-sm text-slate-400">{{ emptySearchText }}</p>
+      <p v-else class="px-1 py-2 text-sm text-theme-muted">{{ emptySearchText }}</p>
     </div>
   </div>
 </template>

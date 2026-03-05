@@ -6,45 +6,45 @@
     </SectionHeader>
 
     <AppCard v-if="patientsStore.loading">
-      <p class="text-sm text-slate-400">Loading patient profile...</p>
+      <p class="text-sm text-theme-muted">Loading patient profile...</p>
     </AppCard>
     <AppCard v-else-if="patientsStore.error">
-      <p class="text-sm text-rose-300">{{ patientsStore.error }}</p>
+      <p class="text-sm text-theme-error">{{ patientsStore.error }}</p>
     </AppCard>
 
     <AppCard v-else-if="patient">
       <div class="grid gap-6 md:grid-cols-2">
         <div>
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Name</p>
-          <p class="mt-2 text-xl font-semibold text-white">{{ patient.emri }}</p>
+          <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">Name</p>
+          <p class="mt-2 text-xl font-semibold text-theme">{{ patient.emri }}</p>
         </div>
         <div>
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Assigned doctor</p>
-          <p class="mt-2 text-lg text-white">{{ patient.mjeku || 'Not assigned' }}</p>
+          <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">Assigned doctor</p>
+          <p class="mt-2 text-lg text-theme">{{ patient.mjeku || 'Not assigned' }}</p>
         </div>
         <div>
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Phone</p>
-          <p class="mt-2 text-white">{{ patient.nr_cel || 'Not provided' }}</p>
+          <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">Phone</p>
+          <p class="mt-2 text-theme">{{ patient.nr_cel || 'Not provided' }}</p>
         </div>
         <div>
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Email</p>
-          <p class="mt-2 text-white">{{ patient.email || 'Not provided' }}</p>
+          <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">Email</p>
+          <p class="mt-2 text-theme">{{ patient.email || 'Not provided' }}</p>
         </div>
         <div>
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Created</p>
-          <p class="mt-2 text-white">{{ formattedDate || 'Unknown' }} by {{ patient.created_by?.username || 'Unknown' }}</p>
+          <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">Created</p>
+          <p class="mt-2 text-theme">{{ formattedDate || 'Unknown' }} by {{ patient.created_by?.username || 'Unknown' }}</p>
         </div>
         <div>
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Last updated by</p>
-          <p class="mt-2 text-white">{{ patient.updated_by?.username || 'Unknown' }}</p>
+          <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">Last updated by</p>
+          <p class="mt-2 text-theme">{{ patient.updated_by?.username || 'Unknown' }}</p>
         </div>
         <div class="md:col-span-2">
-          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Service history</p>
-          <div class="mt-3 space-y-4 rounded-2xl border border-white/10 bg-slate-900/40 p-4">
+          <p class="text-xs uppercase tracking-[0.2em] text-theme-subtle">Service history</p>
+          <div class="mt-3 space-y-4 rounded-2xl border border-theme bg-theme-soft p-4">
             <form class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_180px_140px_auto]" @submit.prevent="handleAddServiceEvent">
               <select
                 v-model="serviceEventForm.service_id"
-                class="w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-white focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+                class="w-full rounded-xl border border-theme bg-theme-elevated px-3 py-2 text-sm text-theme focus:border-theme-strong focus:outline-none focus:ring-2 focus:ring-[var(--primary-ring)]"
               >
                 <option value="" disabled>Select service</option>
                 <option v-for="service in patientsStore.services" :key="service.id" :value="String(service.id)">
@@ -55,31 +55,31 @@
                 v-model="serviceEventForm.service_date"
                 type="date"
                 :max="today"
-                class="w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-white focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+                class="w-full rounded-xl border border-theme bg-theme-elevated px-3 py-2 text-sm text-theme focus:border-theme-strong focus:outline-none focus:ring-2 focus:ring-[var(--primary-ring)]"
               />
               <input
                 v-model="serviceEventForm.price"
                 type="text"
                 placeholder="Price (optional)"
-                class="w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+                class="w-full rounded-xl border border-theme bg-theme-elevated px-3 py-2 text-sm text-theme placeholder:text-theme-muted focus:border-theme-strong focus:outline-none focus:ring-2 focus:ring-[var(--primary-ring)]"
               />
               <AppButton type="submit" :disabled="addingServiceEvent" class="w-full sm:col-span-2 lg:col-span-1">
                 Add service date
               </AppButton>
             </form>
-            <p v-if="serviceEventError" class="text-sm text-rose-300">{{ serviceEventError }}</p>
+            <p v-if="serviceEventError" class="text-sm text-theme-error">{{ serviceEventError }}</p>
 
             <div v-if="patient.service_events.length" class="space-y-3 md:hidden">
               <div
                 v-for="event in patient.service_events"
                 :key="event.id"
-                class="rounded-xl border border-white/10 bg-slate-950/60 p-3"
+                class="rounded-xl border border-theme bg-theme-elevated p-3"
               >
-                <p class="text-sm font-semibold text-white">{{ event.service.name }}</p>
-                <p class="mt-1 text-xs text-slate-400">
+                <p class="text-sm font-semibold text-theme">{{ event.service.name }}</p>
+                <p class="mt-1 text-xs text-theme-muted">
                   {{ formatServiceDate(event.service_date) }} • {{ event.price || 'No price' }}
                 </p>
-                <p class="mt-2 text-xs text-slate-400">
+                <p class="mt-2 text-xs text-theme-muted">
                   Added by {{ event.created_by?.username || 'Unknown' }} at {{ formatCreatedAt(event.created_at) }}
                 </p>
                 <div class="mt-3">
@@ -97,8 +97,8 @@
             </div>
 
             <div v-if="patient.service_events.length" class="hidden overflow-x-auto md:block">
-              <table class="min-w-full text-left text-sm text-slate-200">
-                <thead class="text-xs uppercase tracking-[0.15em] text-slate-400">
+              <table class="min-w-full text-left text-sm text-theme">
+                <thead class="text-xs uppercase tracking-[0.15em] text-theme-muted">
                   <tr>
                     <th class="py-2 pr-4">Service</th>
                     <th class="py-2 pr-4">Date</th>
@@ -109,7 +109,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="event in patient.service_events" :key="event.id" class="border-t border-white/10">
+                  <tr v-for="event in patient.service_events" :key="event.id" class="border-t border-theme">
                     <td class="py-3 pr-4">{{ event.service.name }}</td>
                     <td class="py-3 pr-4">{{ formatServiceDate(event.service_date) }}</td>
                     <td class="py-3 pr-4">{{ event.price || 'Not set' }}</td>
@@ -129,13 +129,13 @@
                 </tbody>
               </table>
             </div>
-            <p v-else class="text-sm text-slate-400">No service events logged yet.</p>
+            <p v-else class="text-sm text-theme-muted">No service events logged yet.</p>
           </div>
         </div>
       </div>
     </AppCard>
     <AppCard v-else>
-      <p class="text-sm text-slate-400">Patient not found.</p>
+      <p class="text-sm text-theme-muted">Patient not found.</p>
     </AppCard>
 
     <ModalConfirm
